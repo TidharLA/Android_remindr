@@ -33,10 +33,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             git zip unzip \
-            autoconf libtool pkg-config \
+            autoconf automake libtool pkg-config \
             cmake libffi-dev libssl-dev \
             zlib1g-dev libncurses5-dev libncursesw5-dev \
-            libtinfo6
+            libtinfo6 m4
 
       - name: Install Android SDK and build-tools
         run: |
@@ -68,6 +68,12 @@ jobs:
           ls $ANDROID_HOME/tools/bin/sdkmanager
           ls $ANDROID_HOME/build-tools/33.0.0/aidl
 
+      - name: Fix autotools compatibility for libffi
+        run: |
+          echo "ACLOCAL_PATH=/usr/share/aclocal" >> $GITHUB_ENV
+          echo "M4=/usr/bin/m4" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/lib" >> $GITHUB_ENV
+
       - name: Install Buildozer
         run: |
           python -m pip install --upgrade pip setuptools wheel
@@ -82,15 +88,40 @@ jobs:
           ln -sf $ANDROID_HOME/ndk/25.2.9519653 $HOME/.buildozer/android/platform/android-ndk-r28c
           ls -l $HOME/.buildozer/android/platform/
 
+      - name: Setup libffi build environment
+        run: |
+          echo "LDFLAGS=-L/usr/lib -L/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+          echo "CFLAGS=-O2" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/usr/include" >> $GITHUB_ENV
+          mkdir -p ~/.config/libtool
+          export ACLOCAL_PATH=/usr/share/aclocal:$ACLOCAL_PATH
+          echo "ACLOCAL_PATH=$ACLOCAL_PATH" >> $GITHUB_ENV
+
       - name: Build APK
         run: |
           buildozer -v android debug 2>&1 | tee buildozer-full.log
+
+      - name: Locate APK output
+        id: apk
+        run: |
+          mapfile -t apks < <(find . -type f -path "*/bin/*.apk" | sort)
+          if [ "${#apks[@]}" -eq 0 ]; then
+            echo "No APK files found"
+            find . -maxdepth 4 -type d -name "bin" -print || true
+            exit 1
+          fi
+          {
+            echo 'apk_paths<<EOF'
+            printf '%s\n' "${apks[@]}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: bin/*.apk
+          path: ${{ steps.apk.outputs.apk_paths }}
+          if-no-files-found: error
 
       - name: Upload full build log
         if: always()
@@ -98,4 +129,3 @@ jobs:
         with:
           name: buildozer-log
           path: buildozer-full.log
-
