@@ -54,12 +54,18 @@ jobs:
             "platform-tools" \
             "ndk;25.2.9519653"
 
+          # Buildozer checks a legacy path: android-sdk/tools/bin/sdkmanager
+          mkdir -p $ANDROID_HOME/tools/bin
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+          ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
+
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
           echo "$ANDROID_HOME/build-tools/33.0.0" >> $GITHUB_PATH
 
       - name: Verify aidl is installed
         run: |
+          ls $ANDROID_HOME/tools/bin/sdkmanager
           ls $ANDROID_HOME/build-tools/33.0.0/aidl
 
       - name: Install Buildozer
