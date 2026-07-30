@@ -17,4 +17,7 @@ warn_on_root = 1
 android.permissions = RECORD_AUDIO
 android.api = 33
 android.minapi = 24
-
+android.ndk = 25b
+android.sdk = 33
+android.build_tools_version = 33.0.0
+android.accept_sdk_license = True
