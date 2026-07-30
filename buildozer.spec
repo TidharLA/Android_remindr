@@ -21,3 +21,6 @@ android.ndk = 25b
 android.sdk = 33
 android.build_tools_version = 33.0.0
 android.accept_sdk_license = True
+android.sdk_path = /home/runner/android-sdk
+android.ndk_path = /home/runner/android-sdk/ndk/25.2.9519653
+

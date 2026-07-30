@@ -77,14 +77,25 @@ jobs:
         run: |
           mkdir -p $HOME/.buildozer/android/platform
           ln -sf $ANDROID_HOME $HOME/.buildozer/android/platform/android-sdk
+          # Buildozer / p4a may look for different NDK folder names; provide both.
           ln -sf $ANDROID_HOME/ndk/25.2.9519653 $HOME/.buildozer/android/platform/android-ndk-r25b
+          ln -sf $ANDROID_HOME/ndk/25.2.9519653 $HOME/.buildozer/android/platform/android-ndk-r28c
+          ls -l $HOME/.buildozer/android/platform/
 
       - name: Build APK
         run: |
-          buildozer android debug 2>&1
+          buildozer -v android debug 2>&1 | tee buildozer-full.log
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: bin/*.apk
+
+      - name: Upload full build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-log
+          path: buildozer-full.log
+
