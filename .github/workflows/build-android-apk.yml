@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'AndroidReminderKivyApp/**'
-      - '.github/workflows/build-android-apk.yml'
+      - '**'
+      - '.github/workflows/*.yml'
 
 jobs:
   build:
@@ -34,7 +34,7 @@ jobs:
           python -m pip install "cython<3" buildozer
 
       - name: Build APK
-        working-directory: AndroidReminderKivyApp
+        working-directory: .
         run: |
           buildozer android debug
 
@@ -42,5 +42,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: AndroidReminderKivyApp/bin/*.apk
+          path: bin/*.apk
 
