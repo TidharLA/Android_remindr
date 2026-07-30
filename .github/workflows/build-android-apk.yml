@@ -98,8 +98,19 @@ jobs:
           echo "ACLOCAL_PATH=$ACLOCAL_PATH" >> $GITHUB_ENV
 
       - name: Build APK
+        shell: bash
         run: |
+          set -o pipefail
           buildozer -v android debug 2>&1 | tee buildozer-full.log
+
+      - name: Post-build diagnostics
+        if: always()
+        run: |
+          echo "PWD=$(pwd)"
+          echo "---- bin listing ----"
+          ls -la ./bin || true
+          echo "---- apk search ----"
+          find . -type f -name "*.apk" | sort || true
 
       - name: Locate APK output
         id: apk
